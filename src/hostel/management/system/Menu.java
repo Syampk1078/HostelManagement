@@ -53,13 +53,13 @@ public class Menu {
 	private JLabel lblNewLabel;
 	protected double extrPayment;
 	protected double pending;
-
+	protected JButton btnDel;
 	/**
 	 * Launch the application.
 	 */
 	public static void main(String[] args) {
 		
-		
+	
 		
 		
 		
@@ -68,6 +68,7 @@ public class Menu {
 				try {
 					Menu window = new Menu();
 					window.secondFrame.setVisible(true);
+					
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -86,7 +87,7 @@ public class Menu {
 			   Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/project2?useSSL=false","root","1234");
 			   
 			   
-			   PreparedStatement pst = con.prepareStatement("select sNo,name,aadar,Room_no from details ORDER by name asc");
+			   PreparedStatement pst = con.prepareStatement("select sNo,name,aadar,Room_no from details ORDER by sNo asc");
 			    ResultSet rs = pst.executeQuery();
 			    table.setModel(DbUtils.resultSetToTableModel(rs));
 			    rs.close();
@@ -103,12 +104,38 @@ public class Menu {
 		initialize();
 		load_table();
 		
+		try {
+			 Class.forName("com.mysql.jdbc.Driver");
+			   Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/project2?useSSL=false","root","1234");
+			   
+			   
+			   
+			   Statement stmt = con.createStatement();
+			   String query = "SELECT COUNT(*)as row_count FROM details";
+	            PreparedStatement pstmt = con.prepareStatement(query);
+	           
+	            
+	            ResultSet resultSet = pstmt.executeQuery();
+	            resultSet.next();
+	            int count = resultSet.getInt(1);
+	            
+	            if(count==0) {
+	            	btnDel.setEnabled(false);
+	            }
+	            resultSet.close();
+	            con.close();
+		}
+		catch(Exception e) {
+			JOptionPane.showMessageDialog(aadar, e);
+		}
+		
 	}
 
 	/**
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
+		
 		secondFrame = new JFrame();
 		secondFrame.getContentPane().setBackground(Color.GRAY);
 		secondFrame.setBounds(100, 100, 837, 467);
@@ -209,9 +236,9 @@ public class Menu {
 				name.requestFocus();
 			}
 		});
-		btnReset.setFont(new Font("Tahoma", Font.BOLD, 25));
+		btnReset.setFont(new Font("Tahoma", Font.BOLD, 20));
 		btnReset.setBackground(Color.LIGHT_GRAY);
-		btnReset.setBounds(45, 234, 126, 46);
+		btnReset.setBounds(10, 234, 109, 46);
 		panel_1.add(btnReset);
 		
 		JLabel lblNewLabel_1_2 = new JLabel("AADHAR");
@@ -259,12 +286,12 @@ public class Menu {
 					 //month,rm,payc
 					   //int rNo = Integer.valueOf(rm);
 					   
-					   String username = "syam";
-					   String c = "1234";
-					  // String sql = "select name,contact from detail where name='"+username+"' and contact='"+c+"'";
 					   
 					   
-					   
+							 
+							   
+							   
+					            
 					   
 					   if(ph.getText().equals("") || aadar.getText().equals("") || comRoom.equals("")) {
 						   msg.setText("=> Missing Field <=");
@@ -299,7 +326,20 @@ public class Menu {
 								  stmt.execute(sql);
 								  
 								  msg.setText("=> Record Added <=");
+								  
 								  load_table();
+								  stmt = con.createStatement();
+								   String query1 = "SELECT COUNT(*)as row_count FROM details";
+						            PreparedStatement pstmt1 = con.prepareStatement(query1);
+						           
+						            
+						            ResultSet resultSet1 = pstmt1.executeQuery();
+						            resultSet1.next();
+						            int count1 = resultSet1.getInt(1);
+						            
+						            if(count1>0) {
+						            	btnDel.setEnabled(true);
+						            }
 								  
 								  
 								 
@@ -377,9 +417,9 @@ public class Menu {
 		});
 		
 		
-		btnAdd.setFont(new Font("Tahoma", Font.BOLD, 25));
+		btnAdd.setFont(new Font("Tahoma", Font.BOLD, 20));
 		btnAdd.setBackground(Color.LIGHT_GRAY);
-		btnAdd.setBounds(219, 234, 129, 46);
+		btnAdd.setBounds(130, 232, 109, 46);
 		panel_1.add(btnAdd);
 		
 		ph = new JTextField();
@@ -414,13 +454,17 @@ public class Menu {
 		panel_1.add(aadar);
 		
 		fName = new JTextField();
+		fName.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				int position = fName.getCaretPosition();
+				fName.setText(fName.getText().toUpperCase());
+				fName.setCaretPosition(position);
+			}
+		});
 		fName.setColumns(10);
 		fName.setBounds(194, 113, 168, 20);
 		panel_1.add(fName);
-		
-		
-		
-		
 		
 		JPanel paymentPanel = new JPanel();
 		paymentPanel.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, new Color(255, 255, 255), new Color(160, 160, 160)), "Information", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
@@ -449,7 +493,7 @@ public class Menu {
 	
 		
 		
-		String[] colums = {"","One Month","Three Months","Six Months","Year"};
+		String[] colums = {"","1","3","6","12"};
 		JComboBox comboBox = new JComboBox(colums);
 		comboBox.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -518,22 +562,71 @@ public class Menu {
 		comboBox_2.setBounds(194, 205, 168, 22);
 		panel_1.add(comboBox_2);
 		
+	    btnDel = new JButton("DELETE");
+		btnDel.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				
+				try {
+					   Class.forName("com.mysql.jdbc.Driver");
+					   Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/project2?useSSL=false","root","1234");
+					   
+					   
+					   
+					   Statement stmt = con.createStatement();
+					   String query = "SELECT COUNT(*)as row_count FROM details";
+			            PreparedStatement pstmt = con.prepareStatement(query);
+			           
+			            
+			            ResultSet resultSet = pstmt.executeQuery();
+			            resultSet.next();
+			            int count = resultSet.getInt(1);
+			            
+			            if(count==0) {
+			            	btnDel.disable();
+			            }
+						   
+						   
+			            if(txtSearch.getText().equals("")) {
+							   msg.setText("=> Enter Search Id <=");
+						   }
+						   else {
+							   
+					            	String sql = "DELETE FROM details where sNo="+txtSearch.getText()+"";
+									   
+									  stmt.execute(sql);
+									  
+									  msg.setText("=> Record Deleted <=");
+									  load_table();
+									
+					            }
+						
+						   stmt.close();
+						   con.close();
+						 
+				}
+				catch(Exception e1) {
+					JOptionPane.showMessageDialog(btnAdd, e1);
+				}
+			}
+		});
+		btnDel.setFont(new Font("Tahoma", Font.BOLD, 20));
+		btnDel.setBackground(Color.LIGHT_GRAY);
+		btnDel.setBounds(254, 232, 109, 46);
+		panel_1.add(btnDel);
+		
 		JButton btnPrint = new JButton("PRINT RECIEPT");
 		btnPrint.setFont(new Font("Tahoma", Font.BOLD, 14));
 		btnPrint.setBackground(Color.LIGHT_GRAY);
 		btnPrint.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				
-				
-				
-				
-				int s = Integer.parseInt(txtSearch.getText());
+
 				if(txtSearch.getText().equals("")) {
 					msg.setText("Enter Search Id");
 					txtSearch.requestFocus();
 				}
 				else {
 				    try {
+				    	int s = Integer.parseInt(txtSearch.getText()); //change
 					   Class.forName("com.mysql.jdbc.Driver");
 					   Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/project2?useSSL=false","root","1234");
 					   String sql = "select Name,fname,room_no,payment,months from details where sNo="+s+"";
@@ -638,7 +731,7 @@ public class Menu {
 				
 			}
 		});
-		btnPrint.setBounds(467, 391, 281, 30);
+		btnPrint.setBounds(458, 395, 281, 30);
 		secondFrame.getContentPane().add(btnPrint);
 		
 		lblNewLabel = new JLabel("Search");
